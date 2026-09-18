@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Body Repair Centre Audit Manager</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="storage-banner" style="display:none;"></div>
+<div id="mobile-bar">
+  <div class="brand">
+    <button id="hamburger" aria-label="Open menu">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+    <h1>Audit Manager</h1>
+  </div>
+</div>
+<div id="mobile-menu"><div class="sheet" id="mobile-sheet"></div></div>
+
+<div id="app">
+  <div id="sidebar">
+    <div class="brand">
+      <span class="tag">BODY REPAIR CENTRE</span>
+      <h1>Audit Manager</h1>
+    </div>
+    <nav id="nav"></nav>
+    <div class="foot" id="sidebar-foot">Prototype build</div>
+  </div>
+  <div id="main">
+    <div id="topbar">
+      <div>
+        <h2 id="topbar-title">Dashboard</h2>
+        <div class="sub" id="topbar-sub"></div>
+      </div>
+      <div id="topbar-actions"></div>
+    </div>
+    <div id="content"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
