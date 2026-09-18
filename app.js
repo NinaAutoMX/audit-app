@@ -232,15 +232,7 @@ function brandLogo(bid){
   return (b && b.logo) || '';
 }
 
-/* A question/checklist item "applies" to a report if:
-   - it has no brand tags (generic) OR is tagged to a brand being audited, AND
-   - it has no audit-type tags (generic) OR is tagged to the audit type set
-     for that specific brand on this report (Initial and Renewal genuinely
-     have different questions in the source workbook, so this is a second,
-     independent filter alongside the brand one).
-   `contexts` is an array of {brandId, auditType} — build one with
-   contextsFor(report, optionalBrandIdSubset). A question shows if it matches
-   at least one context (same "OR across selected brands" behaviour as before). */
+
 function appliesToReport(item, contexts){
   if(!contexts || !contexts.length) return !(item.brands && item.brands.length);
   return contexts.some(ctx=>{
@@ -990,7 +982,7 @@ function reportHeaderStripHtml(r){
 }
 
 const AUDIT_TYPE_OPTIONS = ['Renewal','Initial','Change of Ownership (COO)','Change of Premises (COP)','Additional (A)','Upgrade (U)'];
-const VEHICLE_CATEGORY_OPTIONS = ['LCV','CV/EV','BB'];
+
 
 function renderInfoTab(container){
   const r = state.report;
@@ -1059,7 +1051,6 @@ function renderInfoTab(container){
   container.innerHTML = `
     <div class="card card-pad" style="margin-bottom:18px;">
       <h3 style="margin-bottom:2px;">Audit Initialisation</h3>
-      <p class="note" style="margin-bottom:12px;">Matches the Info sheet from the source workbook \u2014 laid out as a form rather than a spreadsheet grid so it works on a phone, but every field is the same.</p>
       <div class="field" style="max-width:320px;">
         <label>Folder</label>
         <select id="report-folder">
@@ -1069,12 +1060,6 @@ function renderInfoTab(container){
         <p class="note">Group reports by folder, e.g. "September Week 1", to find them faster on the Reports dashboard.</p>
       </div>
       <div class="grid2">${groupAuditBasics.map(renderField).join('')}</div>
-    </div>
-
-    <div class="card card-pad" style="margin-bottom:18px;">
-      <h3 style="margin-bottom:4px;">Brands &amp; Audit Type</h3>
-      <p class="note" style="margin-bottom:12px;">Tick each brand covered by this audit, then set its audit type and vehicle category \u2014 mirrors the Re/Initial/COO/COP/A/U and LCV/CV-EV/BB matrix on the Info sheet. The Admin and Workshop tabs only show questions relevant to the brands ticked here.</p>
-      <div id="brand-picker"></div>
     </div>
 
     <div class="card card-pad" style="margin-bottom:18px;">
@@ -1196,7 +1181,7 @@ function renderAdminTab(container){
     .filter(cat=>cat.items.length>0);
 
   if(!visibleCats.length){
-    container.innerHTML = `<div class="help-box">This page is completed by in-house admin staff — usually before the workshop visit — to track supporting company &amp; compliance documents.</div>
+    container.innerHTML = `<div class="help-box"></div>
       <div class="card"><div class="empty"><p style="font-size:13px;">No checklist items apply to the brands selected on this report yet. Add or tag some from Owner Setup.</p></div></div>`;
     return;
   }
@@ -1218,7 +1203,7 @@ function renderAdminTab(container){
   if(changed) saveReport(false);
 
   container.innerHTML = `
-    <div class="help-box">This page is completed by in-house admin staff — usually before the workshop visit — not the auditor. Only items relevant to ${escapeHtml(brandNamesFor(r.selectedBrands).join(', '))} and each brand's audit type (set on the Info tab) are shown. The checklist itself is edited only from Owner Setup.</div>
+    <div class="help-box">Only items relevant to ${escapeHtml(brandNamesFor(r.selectedBrands).join(', '))}</div>
     <div class="field" style="max-width:320px;"><label>Admin completed by</label><input type="text" id="admin-by" value="${escapeAttr(r.adminCompletedBy||'')}"></div>
     ${visibleCats.map(cat=>`
       <div class="section-block">
@@ -1321,7 +1306,9 @@ function renderWorkshopTab(container){
     return;
   }
 
-  container.innerHTML = `<div class="help-box">Showing only questions relevant to ${escapeHtml(brandNamesFor(r.selectedBrands).join(', '))} and each brand's audit type (set on the Info tab). Generic questions apply to every brand/type; some are tagged to a specific brand and/or Initial vs Renewal.</div>` +
+  container.innerHTML = `
+    <div class="help-box">Only items relevant to ${escapeHtml(brandNamesFor(r.selectedBrands).join(', '))}</div>
+  ` +
     visibleSections.map(sec=>`
     <div class="section-block">
       <div class="section-title">${escapeHtml(sec.title)}</div>
@@ -1475,7 +1462,6 @@ function renderNonComplianceTab(container){
   </div>`;
 
   container.innerHTML = `
-    <div class="help-box">"All Brands" holds every non-compliance found across this audit. Each brand tab shows only that brand's own findings — this is what gets shared with that brand's manager. Descriptions, answers and status can be corrected here by whoever processes non-compliances; you can also add a finding manually if it wasn't tied to a specific question.</div>
     ${subTabsHtml}
     <div id="nc-body"></div>
   `;
@@ -1648,7 +1634,6 @@ function renderBrandReportsTab(container){
     return;
   }
   container.innerHTML = `
-    <div class="help-box">A report is generated per brand from whatever's been answered on the Admin and Workshop tabs, filtered to what applies to that brand, laid out like the original Excel sheet. Review it here, then have the dealer accept and sign it — separately for each manufacturer. This is the document you'd upload for that brand's manager.</div>
     ${r.selectedBrands.map(bid=>{
       const b = state.brands.find(x=>x.id===bid);
       const stats = brandStats(r, bid);
@@ -2431,8 +2416,6 @@ async function renderOwnerSetup(){
 
   state.brands = (await sGet('brands')) || [];
   c.innerHTML = `
-    <div class="help-box">You're in Owner Setup. Changes here apply to every report — new and existing — since brands, the workshop question bank and the admin checklist are shared across the whole app. Tag a question or checklist item to specific brands so it only shows up on reports that include them; leave it untagged and it applies to every brand.</div>
-    <div class="tabs" style="margin-bottom:16px;">
       <div class="tab ${state.ownerTab==='brands'?'active':''}" data-otab="brands">Brands</div>
       <div class="tab ${state.ownerTab==='workshop'?'active':''}" data-otab="workshop">Workshop Questions</div>
       <div class="tab ${state.ownerTab==='checklist'?'active':''}" data-otab="checklist">Admin Checklist</div>
@@ -2926,9 +2909,6 @@ function renderSettings(){
   const mode = currentStorageMode();
   const c = document.getElementById('content');
   c.innerHTML = `
-    <div class="help-box">
-      This screen is per-device — everyone on the team who wants shared storage needs to enter the same Server URL and API Key here, once, on each of their laptops/phones/tablets. The backend code and setup instructions are in the <code>server/</code> folder shared alongside this app.
-    </div>
     <div class="card card-pad" style="max-width:560px;margin-bottom:16px;">
       <h3 style="margin-bottom:4px;">Current mode</h3>
       <p style="font-size:14px;margin-bottom:14px;"><span class="badge ${mode==='local-fallback'?'badge-bad':'badge-good'}">${escapeHtml(currentStorageModeLabel())}</span></p>
